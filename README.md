@@ -10,7 +10,7 @@
 
 Do not expect anything to work or compile correctly, as this port is in active development and I really have no idea what I am doing.
 
-Also do not expect this version to be identical to the current version(s) of PrBoom+. Some extra features present in PrBoom+ such as PC speaker emulation, v1.1 pitch effects, and OpenGL rendering will not be present in this port.
+Also do not expect this version to be identical to the current version(s) of PrBoom+. Some extra features present in PrBoom+ such as PC speaker emulation, v1.1 pitch effects, and OpenGL rendering may not be present in this port.
 
 The main `nxdk` directory should be at the same level as the folder for the `prboom-plus` repository. Something like this:
 
