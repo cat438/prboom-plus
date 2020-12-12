@@ -1,3 +1,0 @@
-# Hashes of file build rules.
-0f1b706d3687b710971f336798bfce17 data/CMakeFiles/prboomwad
-a84695dd14b4205632b39bf2dec872f7 prboom-plus.wad
