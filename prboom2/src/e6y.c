@@ -38,7 +38,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <direct.h>
-#include <winreg.h>
+//#include <winreg.h>
 #endif
 #ifdef GL_DOOM
 #include <SDL_opengl.h>
@@ -176,34 +176,6 @@ dboolean mlook_or_fov;
 
 int maxViewPitch;
 int minViewPitch;
-
-#ifdef _WIN32
-const char* WINError(void)
-{
-  static char *WinEBuff = NULL;
-  DWORD err = GetLastError();
-  char *ch;
-
-  if (WinEBuff)
-  {
-    LocalFree(WinEBuff);
-  }
-
-  if (FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-    NULL, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-    (LPTSTR) &WinEBuff, 0, NULL) == 0)
-  {
-    return "Unknown error";
-  }
-
-  if ((ch = strchr(WinEBuff, '\n')) != 0)
-    *ch = 0;
-  if ((ch = strchr(WinEBuff, '\r')) != 0)
-    *ch = 0;
-
-  return WinEBuff;
-}
-#endif
 
 //--------------------------------------------------
 
@@ -759,15 +731,6 @@ int I_MessageBox(const char* text, unsigned int type)
 {
   int result = PRB_IDCANCEL;
 
-#ifdef _WIN32
-  {
-    HWND current_hwnd = GetForegroundWindow();
-    result = MessageBox(GetDesktopWindow(), text, PACKAGE_NAME, type|MB_TASKMODAL|MB_TOPMOST);
-    I_SwitchToWindow(current_hwnd);
-    return result;
-  }
-#endif
-
 #if 0
   {
     typedef struct mb_hotkeys_s
@@ -1292,7 +1255,6 @@ int GetFullPath(const char* FileName, const char* ext, char *Buffer, size_t Buff
 }
 #endif
 
-#ifdef _WIN32
 #include <Mmsystem.h>
 #ifndef __GNUC__
 #pragma comment( lib, "winmm.lib" )
@@ -1305,7 +1267,6 @@ void I_midiOutSetVolumes(int volume)
   
   MMRESULT result;
   int calcVolume;
-  MIDIOUTCAPS capabilities;
   unsigned int i;
 
   if (volume > 15)
@@ -1316,24 +1277,8 @@ void I_midiOutSetVolumes(int volume)
 
   //SDL_LockAudio(); // this function doesn't touch anything the audio callback touches
 
-  //Device loop
-  for (i = 0; i < midiOutGetNumDevs(); i++)
-  {
-    //Get device capabilities
-    result = midiOutGetDevCaps(i, &capabilities, sizeof(capabilities));
-    if (result == MMSYSERR_NOERROR)
-    {
-      //Adjust volume on this candidate
-      if ((capabilities.dwSupport & MIDICAPS_VOLUME))
-      {
-        midiOutSetVolume((HMIDIOUT)i, MAKELONG(calcVolume, calcVolume));
-      }
-    }
-  }
-
   //SDL_UnlockAudio();
 }
-#endif
 
 //Begin of GZDoom code
 /*

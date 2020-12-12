@@ -43,7 +43,6 @@
 #else
 #include <unistd.h>
 #endif
-#include <fcntl.h>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -1977,7 +1976,6 @@ unsigned int GetPackageVersion(void)
   {
     int b[4], i, k = 1;
     memset(b, 0, sizeof(b));
-    sscanf(PACKAGE_VERSION, "%d.%d.%d.%d", &b[0], &b[1], &b[2], &b[3]);
     for (i = 3; i >= 0; i--, k *= 256)
     {
 #ifdef RANGECHECK

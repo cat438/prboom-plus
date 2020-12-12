@@ -45,8 +45,6 @@
 #ifdef _MSC_VER
 #include <io.h>
 #endif
-#include <fcntl.h>
-#include <sys/stat.h>
 
 #include "doomstat.h"
 #include "m_argv.h"
@@ -1635,8 +1633,6 @@ void M_LoadDefaults (void)
   /* proff 2001/7/1 - added prboom.wad as last entry so it's always loaded and
      doesn't overlap with the cfg settings */
   //e6y: Check on existence of prboom.wad
-  if (!(wad_files[0] = I_FindFile(PACKAGE_TARNAME ".wad", "")))
-    I_Error("PrBoom-Plus.wad not found. Can't continue.");
 }
 
 
@@ -1702,11 +1698,6 @@ const char* M_CheckWritableDir(const char *dir)
 
     if (base[len - 1] != '\\' && base[len - 1] != '/')
       strcat(base, "/");
-    if (!access(base, O_RDWR))
-    {
-      base[strlen(base) - 1] = 0;
-      result = base;
-    }
   }
 
   return result;

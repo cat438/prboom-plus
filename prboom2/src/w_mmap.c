@@ -100,7 +100,6 @@ static void W_ReportLocks(void)
 #ifdef _WIN32
 typedef struct {
   HANDLE hnd;
-  OFSTRUCT fileinfo;
   HANDLE hnd_map;
   void   *data;
 } mmap_info_t;
@@ -185,14 +184,6 @@ void W_InitCache(void)
           );
         if (mapped_wad[wad_index].hnd_map==NULL)
           I_Error("W_InitCache: CreateFileMapping for memory mapping failed (LastError %i)",GetLastError());
-        mapped_wad[wad_index].data =
-          MapViewOfFile(
-            mapped_wad[wad_index].hnd_map,
-            FILE_MAP_READ,
-            0,
-            0,
-            0
-          );
         if (mapped_wad[wad_index].data==NULL)
           I_Error("W_InitCache: MapViewOfFile for memory mapping failed (LastError %i)",GetLastError());
       }

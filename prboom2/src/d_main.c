@@ -47,9 +47,6 @@
 #else
 #include <unistd.h>
 #endif
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 
 #include "doomdef.h"
 #include "doomtype.h"
@@ -989,7 +986,6 @@ static char *FindIWADFile(void)
 static void IdentifyVersion (void)
 {
   int         i;    //jff 3/24/98 index of args on commandline
-  struct stat sbuf; //jff 3/24/98 used to test save path for existence
   char *iwad;
 
   // set save path to -save parm or current dir
@@ -1008,14 +1004,9 @@ static void IdentifyVersion (void)
   }
   if ((i=M_CheckParm("-save")) && i<myargc-1) //jff 3/24/98 if -save present
   {
-    if (!stat(myargv[i+1],&sbuf) && S_ISDIR(sbuf.st_mode)) // and is a dir
-    {
-      free(basesavegame);
-      basesavegame = strdup(myargv[i+1]);//jff 3/24/98 use that for savegame
-      NormalizeSlashes(basesavegame);    //jff 9/22/98 fix c:\ not working
-    }
+    
     //jff 9/3/98 use logical output routine
-    else lprintf(LO_ERROR,"Error: -save path does not exist, using %s\n", basesavegame);
+    lprintf(LO_ERROR,"Error: -save path does not exist, using %s\n", basesavegame);
   }
 
   // locate the IWAD and determine game mode from it
@@ -1485,12 +1476,7 @@ static void D_DoomMainSetup(void)
       free (tempverstr);
     }
 
-    /* cphipps - the main display. This shows the build date, copyright, and game type */
-    lprintf(LO_ALWAYS,PACKAGE_NAME" (built %s), playing: %s\n"
-      PACKAGE_NAME" is released under the GNU General Public license v2.0.\n"
-      "You are welcome to redistribute it under certain conditions.\n"
-      "It comes with ABSOLUTELY NO WARRANTY. See the file COPYING for details.\n",
-      version_date, doomverstr);
+    
   }
 
   if (devparm)

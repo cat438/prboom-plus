@@ -40,7 +40,6 @@
 #endif
 
 #include <stdio.h>
-#include <fcntl.h>
 
 #include "doomdef.h"
 #include "doomstat.h"
@@ -66,9 +65,6 @@
 #include "r_demo.h"
 #include "r_fps.h"
 #include "e6y.h"//e6y
-#ifdef _WIN32
-#include "e6y_launcher.h"
-#endif
 
 extern patchnum_t hu_font[HU_FONTSIZE];
 extern dboolean  message_dontfuckwithme;
@@ -4435,7 +4431,6 @@ void M_DrawCredits(void)     // killough 10/98: credit screen
   {
     // Use V_DrawBackground here deliberately to force drawing a background
     V_DrawBackground(gamemode==shareware ? "CEIL5_1" : "MFLR8_4", 0);
-    M_DrawTitle(81, 9, "PRBOOM", CR_GOLD, PACKAGE_NAME " v" PACKAGE_VERSION, CR_GOLD);
     M_DrawScreenItems(cred_settings);
   }
 }
