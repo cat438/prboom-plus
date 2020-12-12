@@ -17,16 +17,16 @@ The main `nxdk` directory should be at the same level as the folder for the `prb
 ```
 [parent directory]
 ├─ nxdk
-│	├─ lib
-│	├─ samples
-│	├─ tools
-│	└─ (etc.)
+│   ├─ lib
+│   ├─ samples
+│   ├─ tools
+│   └─ (etc.)
 │
 └─ prboom-plus
-	└─ prboom2
-		├─ cmake
-		├─ data
-		└─ (etc.)
+    └─ prboom2
+        ├─ cmake
+        ├─ data
+        └─ (etc.)
 ```
 
 ## Compiling
