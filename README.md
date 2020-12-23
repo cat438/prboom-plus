@@ -29,7 +29,7 @@ The main `nxdk` directory should be at the same level as the folder for the `xrb
         └─ (etc.)
 ```
 
-## Compiling
+## Compiling on Debian
 
 1. Install the necessary dependencies & libraries for NXDK following the instructions at the [NXDK wiki](https://github.com/XboxDev/nxdk/wiki/Install-the-Prerequisites).
 
@@ -39,17 +39,18 @@ The main `nxdk` directory should be at the same level as the folder for the `xrb
 
 `git clone --recursive https://github.com/XboxDev/nxdk.git`
 
-3. Install the necessary dependencies / libraries for building `prboom-plus`:
+3. Install the dependencies for `prboom-plus` by running `apt build-dep prboom-plus` with root privileges
 
-- Debian-based Linux Distributions: `sudo apt build-dep prboom-plus`
+4. As root, set `clang` and `clang++` to be your default C and C++ compilers:
 
-- Windows: Figure it out. Using a virtual machine with Debian (or Debian through Windows Subsystem for Linux) would be a better option than trying to mess around with Visual Studio, MSYS, Cygwin, or MinGW trying to get anything to actually work.
+- `update-alternatives --set c++ /usr/bin/clang++`
+- `update-alternatives --set c89 /usr/bin/clang`
+- `update-alternatives --set c99 /usr/bin/clang`
+- `update-alternatives --set cc /usr/bin/clang`
 
-- macOS: Get a real computer or use a real operating system in a virtual machine.
+5. `cd` to `./prboom-plus/prboom2/` and run `make`
 
-4. `cd` to `./prboom-plus/prboom2/` and run `make`
-
-5. If all goes as intended, FTP the output folder to `E:\Homebrew\xrboom-plus` along with any IWAD files and go play some DOOM!
+6. If all goes as intended, FTP the output folder to `E:\Homebrew\xrboom-plus` along with any IWAD files and go play some DOOM!
 
 ## Supported IWADs
 All IWAD files that are compatible with PrBoom+ are compatible with XrBoom+.
