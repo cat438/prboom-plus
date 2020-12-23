@@ -41,13 +41,13 @@ The main `nxdk` directory should be at the same level as the folder for the `prb
 
 3. Install the necessary dependencies / libraries for building `prboom-plus`:
 
-- Debian-based Linux (Ubuntu: `sudo apt build-dep prboom-plus`
+- Debian-based Linux Distributions: `sudo apt build-dep prboom-plus`
 
 - Windows: Figure it out. Using a virtual machine would be a better option than trying to mess around with Visual Studio trying to get NXDK to work.
 
 - macOS: Get a real computer or use a real operating system in a virtual machine.
 
-4. `cd` to `./prboom-plus/prboom2/` and run `cmake` and then `make`
+4. `cd` to `./prboom-plus/prboom2/` and run `make`
 
 5. If all goes as intended, FTP the output folder to `E:\Homebrew\xrboom-plus` along with any IWAD files and go play some DOOM!
 
