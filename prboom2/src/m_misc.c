@@ -45,6 +45,8 @@
 #ifdef _MSC_VER
 #include <io.h>
 #endif
+#include <fcntl.h>
+#include <sys/stat.h>
 
 #include "doomstat.h"
 #include "m_argv.h"
@@ -539,6 +541,8 @@ default_t defaults[] =
    0,MAX_KEY,def_key,ss_keys}, // key to move backward
   {"key_mlook",       {&key_mlook},           {'\\'},
    0,MAX_KEY,def_key,ss_keys}, // key to move backward
+  {"key_novert",      {&key_novert},          {0}  ,
+   0,MAX_KEY,def_key,ss_keys}, // key to toggle novert mode
   {"key_menu_right",  {&key_menu_right},     {KEYD_RIGHTARROW},// phares 3/7/98
    0,MAX_KEY,def_key,ss_keys}, // key to move right in a menu  //     |
   {"key_menu_left",   {&key_menu_left},      {KEYD_LEFTARROW} ,//     V
@@ -1015,6 +1019,8 @@ default_t defaults[] =
    def_int,ss_stat},
 
   {"movement_mouselook", {&movement_mouselook},  {0},0,1,
+   def_bool,ss_stat},
+  {"movement_mousenovert", {&movement_mousenovert},  {0},0,1,
    def_bool,ss_stat},
   {"movement_maxviewpitch", {&movement_maxviewpitch},  {90},0,90,
    def_int,ss_stat},
@@ -1633,6 +1639,8 @@ void M_LoadDefaults (void)
   /* proff 2001/7/1 - added prboom.wad as last entry so it's always loaded and
      doesn't overlap with the cfg settings */
   //e6y: Check on existence of prboom.wad
+  if (!(wad_files[0] = I_FindFile(PACKAGE_TARNAME ".wad", "")))
+    I_Error("PrBoom-Plus.wad not found. Can't continue.");
 }
 
 
@@ -1698,6 +1706,11 @@ const char* M_CheckWritableDir(const char *dir)
 
     if (base[len - 1] != '\\' && base[len - 1] != '/')
       strcat(base, "/");
+    if (!access(base, O_RDWR))
+    {
+      base[strlen(base) - 1] = 0;
+      result = base;
+    }
   }
 
   return result;

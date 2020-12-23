@@ -141,18 +141,183 @@ static int my_popen3 (pipeinfo_t *p); // 1 on success
 // close waits on process
 static void my_pclose3 (pipeinfo_t *p);
 
+
+#ifdef _WIN32
+// direct winapi implementation
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN 1
+#endif
+#include <windows.h>
+#include <io.h>
+
+typedef struct
+{
+  HANDLE proc;
+  HANDLE thread;
+} puser_t;
+
+// extra pointer is used to hold process id to wait on to close
+// NB: stdin is opened as "wb", stdout, stderr as "r"
+static int my_popen3 (pipeinfo_t *p)
+{
+  FILE *fin = NULL;
+  FILE *fout = NULL;
+  FILE *ferr = NULL;
+  HANDLE child_hin = INVALID_HANDLE_VALUE;
+  HANDLE child_hout = INVALID_HANDLE_VALUE;
+  HANDLE child_herr = INVALID_HANDLE_VALUE;
+  HANDLE parent_hin = INVALID_HANDLE_VALUE;
+  HANDLE parent_hout = INVALID_HANDLE_VALUE;
+  HANDLE parent_herr = INVALID_HANDLE_VALUE;
+
+
+  puser_t *puser = NULL;
+
+
+  PROCESS_INFORMATION piProcInfo;
+  STARTUPINFO siStartInfo;
+  SECURITY_ATTRIBUTES sa;
+
+  puser = malloc (sizeof (puser_t));
+  if (!puser)
+    return 0;
+
+  puser->proc = INVALID_HANDLE_VALUE;
+  puser->thread = INVALID_HANDLE_VALUE;
+
+
+  // make the pipes
+
+  sa.nLength = sizeof (sa);
+  sa.bInheritHandle = 1;
+  sa.lpSecurityDescriptor = NULL;
+  if (!CreatePipe (&child_hin, &parent_hin, &sa, 0))
+    goto fail;
+  if (!CreatePipe (&parent_hout, &child_hout, &sa, 0))
+    goto fail;
+  if (!CreatePipe (&parent_herr, &child_herr, &sa, 0))
+    goto fail;
+
+
+  // very important
+  if (!SetHandleInformation (parent_hin, HANDLE_FLAG_INHERIT, 0))
+    goto fail;
+  if (!SetHandleInformation (parent_hout, HANDLE_FLAG_INHERIT, 0))
+    goto fail;
+  if (!SetHandleInformation (parent_herr, HANDLE_FLAG_INHERIT, 0))
+    goto fail;
+
+
+
+
+  // start the child process
+
+  ZeroMemory (&siStartInfo, sizeof (STARTUPINFO));
+  siStartInfo.cb         = sizeof (STARTUPINFO);
+  siStartInfo.hStdInput  = child_hin;
+  siStartInfo.hStdOutput = child_hout;
+  siStartInfo.hStdError  = child_herr;
+  siStartInfo.dwFlags    = STARTF_USESTDHANDLES;
+
+  if (!CreateProcess(NULL,// application name
+       (LPTSTR)p->command,// command line
+       NULL,              // process security attributes
+       NULL,              // primary thread security attributes
+       TRUE,              // handles are inherited
+       DETACHED_PROCESS,  // creation flags
+       NULL,              // use parent's environment
+       NULL,              // use parent's current directory
+       &siStartInfo,      // STARTUPINFO pointer
+       &piProcInfo))      // receives PROCESS_INFORMATION
+  {
+    goto fail;
+  }
+
+
+
+  puser->proc = piProcInfo.hProcess;
+  puser->thread = piProcInfo.hThread;
+
+
+                                // what the hell is this cast for
+  if (NULL == (fin = _fdopen (_open_osfhandle ((int) parent_hin, 0), "wb")))
+    goto fail;
+  if (NULL == (fout = _fdopen (_open_osfhandle ((int) parent_hout, 0), "r")))
+    goto fail;
+  if (NULL == (ferr = _fdopen (_open_osfhandle ((int) parent_herr, 0), "r")))
+    goto fail;
+  // after fdopen(osf()), we don't need to keep track of parent handles anymore
+  // fclose on the FILE struct will automatically free them
+
+
+  p->user = puser;
+  p->f_stdin = fin;
+  p->f_stdout = fout;
+  p->f_stderr = ferr;
+
+  CloseHandle (child_hin);
+  CloseHandle (child_hout);
+  CloseHandle (child_herr);
+
+  return 1;
+
+  fail:
+  if (fin)
+    fclose (fin);
+  if (fout)
+    fclose (fout);
+  if (ferr)
+    fclose (ferr);
+
+  if (puser->proc)
+    CloseHandle (puser->proc);
+  if (puser->thread)
+    CloseHandle (puser->thread);
+
+  if (child_hin != INVALID_HANDLE_VALUE)
+    CloseHandle (child_hin);
+  if (child_hout != INVALID_HANDLE_VALUE)
+    CloseHandle (child_hout);
+  if (child_herr != INVALID_HANDLE_VALUE)
+    CloseHandle (child_herr);
+  if (parent_hin != INVALID_HANDLE_VALUE)
+    CloseHandle (parent_hin);
+  if (parent_hout != INVALID_HANDLE_VALUE)
+    CloseHandle (parent_hout);
+  if (parent_herr != INVALID_HANDLE_VALUE)
+    CloseHandle (parent_herr);
+
+  free (puser);
+
+  return 0;
+
+
+}
+
 static void my_pclose3 (pipeinfo_t *p)
 {
+  puser_t *puser = (puser_t *) p->user;
+
+  if (!p->f_stdin || !p->f_stdout || !p->f_stderr || !puser)
+    return;
 
   fclose (p->f_stdin);
   //fclose (p->f_stdout); // these are closed elsewhere
   //fclose (p->f_stderr);
 
+  WaitForSingleObject (puser->proc, INFINITE);
+
+  CloseHandle (puser->proc);
+  CloseHandle (puser->thread);
+  free (puser);
 }
- // _WIN32
+
+#else // _WIN32
 // posix implementation
 // not tested
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 
 typedef struct
@@ -205,6 +370,9 @@ static int my_popen3 (pipeinfo_t *p)
     goto fail;
   if (pid == 0)
   {
+    dup2 (child_hin, STDIN_FILENO);
+    dup2 (child_hout, STDOUT_FILENO);
+    dup2 (child_herr, STDERR_FILENO);
 
     close (parent_hin);
     close (parent_hout);
@@ -255,6 +423,27 @@ static int my_popen3 (pipeinfo_t *p)
 
 }
 
+
+static void my_pclose3 (pipeinfo_t *p)
+{
+  puser_t *puser = (puser_t *) p->user;
+
+  int s;
+
+  if (!p->f_stdin || !p->f_stdout || !p->f_stderr || !puser)
+    return;
+
+  fclose (p->f_stdin);
+  //fclose (p->f_stdout); // these are closed elsewhere
+  //fclose (p->f_stderr);
+
+  waitpid (puser->pid, &s, 0);
+
+  free (puser);
+}
+
+
+#endif // _WIN32
 
 typedef struct
 {

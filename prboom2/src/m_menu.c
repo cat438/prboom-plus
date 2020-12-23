@@ -40,6 +40,7 @@
 #endif
 
 #include <stdio.h>
+#include <fcntl.h>
 
 #include "doomdef.h"
 #include "doomstat.h"
@@ -65,6 +66,9 @@
 #include "r_demo.h"
 #include "r_fps.h"
 #include "e6y.h"//e6y
+#ifdef _WIN32
+#include "e6y_launcher.h"
+#endif
 
 extern patchnum_t hu_font[HU_FONTSIZE];
 extern dboolean  message_dontfuckwithme;
@@ -2329,7 +2333,8 @@ setup_menu_t keys_settings1[] =  // Key Binding screen strings
   {"USE"         ,S_KEY       ,m_scrn,KB_X,KB_Y+11*8,{&key_use},&mousebuse,&joybuse},
   {"JUMP/FLY UP" ,S_KEY       ,m_scrn,KB_X,KB_Y+12*8,{&key_flyup}},
   {"FLY DOWN"    ,S_KEY       ,m_scrn,KB_X,KB_Y+13*8,{&key_flydown}},
-  {"MOUSE LOOK"  ,S_KEY       ,m_scrn,KB_X,KB_Y+17*8,{&key_mlook}},
+  {"MOUSE LOOK"  ,S_KEY       ,m_scrn,KB_X,KB_Y+16*8,{&key_mlook}},
+  {"NO VERTICAL MOUSE",S_KEY  ,m_scrn,KB_X,KB_Y+17*8,{&key_novert}},
 
   // Button for resetting to defaults
   {0,S_RESET,m_null,X_BUTTON,Y_BUTTON},
@@ -2808,7 +2813,7 @@ setup_menu_t auto_settings1[] =  // 1st AutoMap Settings screen
   {"Show coordinates of automap pointer",     S_YESNO,m_null,AU_X,AU_Y+1*8, {"map_point_coord"}},  // killough 10/98
   {"Show Secrets only after entering",        S_YESNO,m_null,AU_X,AU_Y+2*8, {"map_secret_after"}},
   {"Update unexplored parts in automap mode", S_YESNO,m_null,AU_X,AU_Y+3*8, {"map_always_updates"}},
-  {"Grid cell size (8..256)",                 S_NUM,  m_null,AU_X,AU_Y+4*8, {"map_grid_size"}},
+  {"Grid cell size 8..256, -1 for autosize",  S_NUM,  m_null,AU_X,AU_Y+4*8, {"map_grid_size"}, 0, 0, M_ChangeMapGridSize},
   {"Scroll / Zoom speed  (1..32)",            S_NUM,  m_null,AU_X,AU_Y+5*8, {"map_scroll_speed"}},
   {"Use mouse wheel for zooming",             S_YESNO,m_null,AU_X,AU_Y+6*8, {"map_wheel_zoom"}},
   {"Apply multisampling",                     S_YESNO,m_null,AU_X,AU_Y+7*8, {"map_use_multisamling"}, 0, 0, M_ChangeMapMultisamling},
@@ -3222,9 +3227,10 @@ setup_menu_t gen_settings3[] = { // General Settings screen2
   {"Dbl-Click As Use",            S_YESNO, m_null, G_X, G_Y+12*8, {"mouse_doubleclick_as_use"}},
   {"Carry Fractional Tics",       S_YESNO, m_null, G_X, G_Y+13*8, {"mouse_carrytics"}},
   {"Enable Mouselook",            S_YESNO, m_null, G_X, G_Y+14*8, {"movement_mouselook"}, 0, 0, M_ChangeMouseLook},
-  {"Invert Mouse",                S_YESNO, m_null, G_X, G_Y+15*8, {"movement_mouseinvert"}, 0, 0, M_ChangeMouseInvert},
-  {"Max View Pitch",              S_NUM,   m_null, G_X, G_Y+16*8, {"movement_maxviewpitch"}, 0, 0, M_ChangeMaxViewPitch},
-  {"Mouse Strafe Divisor",        S_NUM,   m_null, G_X, G_Y+17*8, {"movement_mousestrafedivisor"}},
+  {"No Vertical Mouse",           S_YESNO, m_null, G_X, G_Y+15*8, {"movement_mousenovert"}},
+  {"Invert Mouse",                S_YESNO, m_null, G_X, G_Y+16*8, {"movement_mouseinvert"}, 0, 0, M_ChangeMouseInvert},
+  {"Max View Pitch",              S_NUM,   m_null, G_X, G_Y+17*8, {"movement_maxviewpitch"}, 0, 0, M_ChangeMaxViewPitch},
+  {"Mouse Strafe Divisor",        S_NUM,   m_null, G_X, G_Y+18*8, {"movement_mousestrafedivisor"}},
 
   {"<- PREV",S_SKIP|S_PREV, m_null,KB_PREV, KB_Y+20*8, {gen_settings2}},
   {"NEXT ->",S_SKIP|S_NEXT,m_null,KB_NEXT,KB_Y+20*8, {gen_settings4}},
@@ -4431,6 +4437,7 @@ void M_DrawCredits(void)     // killough 10/98: credit screen
   {
     // Use V_DrawBackground here deliberately to force drawing a background
     V_DrawBackground(gamemode==shareware ? "CEIL5_1" : "MFLR8_4", 0);
+    M_DrawTitle(81, 9, "PRBOOM", CR_GOLD, PACKAGE_NAME " v" PACKAGE_VERSION, CR_GOLD);
     M_DrawScreenItems(cred_settings);
   }
 }
@@ -4853,6 +4860,13 @@ dboolean M_Responder (event_t* ev) {
     {
       movement_mouselook = !movement_mouselook;
       M_ChangeMouseLook();
+      // Don't eat the keypress in this case.
+      // return true;
+    }
+
+    if (ch == key_novert)
+    {
+      movement_mousenovert = !movement_mousenovert;
       // Don't eat the keypress in this case.
       // return true;
     }

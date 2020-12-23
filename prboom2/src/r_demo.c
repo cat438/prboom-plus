@@ -44,6 +44,7 @@
 #endif
 
 #include <errno.h>
+#include <fcntl.h>
 
 #include "doomdef.h"
 #include "doomtype.h"
@@ -1192,7 +1193,8 @@ void G_WriteDemoFooter(FILE *file)
   W_AddLump(&demoex, NULL, (const byte*)DEMOEX_SEPARATOR, strlen(DEMOEX_SEPARATOR));
 
   //process port name
-
+  W_AddLump(&demoex, DEMOEX_PORTNAME_LUMPNAME,
+    (const byte*)(PACKAGE_NAME" "PACKAGE_VERSION), strlen(PACKAGE_NAME" "PACKAGE_VERSION));
   W_AddLump(&demoex, NULL, (const byte*)DEMOEX_SEPARATOR, strlen(DEMOEX_SEPARATOR));
 
   //process iwad, pwads, dehs and critical for demos params like -spechit, etc
@@ -1556,6 +1558,10 @@ int CheckAutoDemo(void)
 {
   int result = false;
   if (M_CheckParm("-auto"))
+#ifndef HAVE_LIBPCREPOSIX
+    I_Error("Cannot process -auto - "
+        PACKAGE_NAME " was compiled without LIBPCRE support");
+#else
   {
     int i;
     waddata_t waddata;
@@ -1593,6 +1599,7 @@ int CheckAutoDemo(void)
       }
     }
   }
+#endif // HAVE_LIBPCREPOSIX
 
   return result;
 }

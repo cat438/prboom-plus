@@ -43,6 +43,7 @@
 #else
 #include <unistd.h>
 #endif
+#include <fcntl.h>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -170,6 +171,7 @@ int     key_left;
 int     key_up;
 int     key_down;
 int     key_mlook;
+int     key_novert;
 int     key_menu_right;                                      // phares 3/7/98
 int     key_menu_left;                                       //     |
 int     key_menu_up;                                         //     V
@@ -679,7 +681,10 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   }//e6y: end if (mouse_doubleclick_as_use)
 
-  forward += mousey;
+  if(!movement_mousenovert)
+  {
+    forward += mousey;
+  }
   if (strafe)
     side += mousex / movement_mousestrafedivisor; /* mead  Don't want to strafe as fast as turns.*/
   else
@@ -1976,6 +1981,7 @@ unsigned int GetPackageVersion(void)
   {
     int b[4], i, k = 1;
     memset(b, 0, sizeof(b));
+    sscanf(PACKAGE_VERSION, "%d.%d.%d.%d", &b[0], &b[1], &b[2], &b[3]);
     for (i = 3; i >= 0; i--, k *= 256)
     {
 #ifdef RANGECHECK

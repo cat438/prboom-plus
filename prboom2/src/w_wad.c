@@ -43,6 +43,7 @@
 #include <stddef.h>
 #include <io.h>
 #endif
+#include <fcntl.h>
 
 #include "doomstat.h"
 #include "d_net.h"
@@ -143,11 +144,11 @@ static void W_AddFile(wadfile_info_t *wadfile)
 
   // open the file and add to directory
 
-  wadfile->handle = open(wadfile->name, O_BINARY);
+  wadfile->handle = open(wadfile->name,O_RDONLY | O_BINARY);
 
 #ifdef HAVE_NET
   if (wadfile->handle == -1 && D_NetGetWad(wadfile->name)) // CPhipps
-    wadfile->handle = open(wadfile->name, O_RDONLY | O_BINARY);
+    wadfile->handle = open(wadfile->name,O_RDONLY | O_BINARY);
 #endif
 
   if (wadfile->handle == -1 &&
@@ -156,7 +157,7 @@ static void W_AddFile(wadfile_info_t *wadfile)
     !strcasecmp(wadfile->name + strlen(wadfile->name) - 4 , ".wad") &&
     D_TryGetWad(wadfile->name))
   {
-    wadfile->handle = open(wadfile->name, O_BINARY);
+    wadfile->handle = open(wadfile->name, O_RDONLY | O_BINARY);
   }
 
   if (wadfile->handle == -1) 
@@ -176,11 +177,11 @@ static void W_AddFile(wadfile_info_t *wadfile)
   // mark lumps from internal resource
   if (wadfile->src == source_auto_load)
   {
-    int len = strlen("xrboom.wad");
+    int len = strlen(PACKAGE_TARNAME ".wad");
     int len_file = strlen(wadfile->name);
     if (len_file >= len)
     {
-      if (!strcasecmp(wadfile->name + len_file - len, "xrboom.wad"))
+      if (!strcasecmp(wadfile->name + len_file - len, PACKAGE_TARNAME ".wad"))
       {
         flags = LUMP_PRBOOM;
       }
