@@ -12,7 +12,7 @@ Do not expect anything to work or compile correctly, as this port is in active d
 
 Also do not expect this version to be identical to the current version(s) of PrBoom+. Some extra features present in PrBoom+ such as PC speaker emulation, v1.1 pitch effects, and OpenGL rendering may not be present in this port.
 
-The main `nxdk` directory should be at the same level as the folder for the `prboom-plus` repository. Something like this:
+The main `nxdk` directory should be at the same level as the folder for the `xrboom-plus` repository. Something like this:
 
 ```
 [parent directory]
@@ -22,7 +22,7 @@ The main `nxdk` directory should be at the same level as the folder for the `prb
 │   ├─ tools
 │   └─ (etc.)
 │
-└─ prboom-plus
+└─ xrboom-plus
     └─ prboom2
         ├─ cmake
         ├─ data
