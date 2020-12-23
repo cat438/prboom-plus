@@ -43,7 +43,7 @@ The main `nxdk` directory should be at the same level as the folder for the `xrb
 
 - Debian-based Linux Distributions: `sudo apt build-dep prboom-plus`
 
-- Windows: Figure it out. Using a virtual machine with Debian would be a better option than trying to mess around with Visual Studio, MSYS, Cygwin, or MinGW trying to get anything to actually work.
+- Windows: Figure it out. Using a virtual machine with Debian (or Debian through Windows Subsystem for Linux) would be a better option than trying to mess around with Visual Studio, MSYS, Cygwin, or MinGW trying to get anything to actually work.
 
 - macOS: Get a real computer or use a real operating system in a virtual machine.
 
